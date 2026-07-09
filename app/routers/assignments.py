@@ -14,19 +14,43 @@ from app.tz import local_now
 router = APIRouter(tags=["assignments"])
 
 
+SORTABLE_COLUMNS = {
+    "titulo": Assignment.titulo,
+    "salon": Classroom.nombre,
+    "profesor": User.nombre,
+    "entrega": Assignment.assignment_date,
+    "cierre": Assignment.closed_at,
+    "estado": Assignment.active,
+}
+
+
 @router.get("/assignments")
-def list_assignments(request: Request, db: Session = Depends(get_db), _=Depends(require_admin)):
+def list_assignments(
+    request: Request,
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+    sort_by: str = Query("created_at"),
+    sort_dir: str = Query("desc"),
+):
     q = request.query_params.get("q", "").strip()
-    query = db.query(Assignment).join(Classroom)
+    query = db.query(Assignment).join(Classroom).outerjoin(User, Assignment.user_id == User.id)
     if q:
         query = query.filter(
             Assignment.titulo.ilike(f"%{q}%") | Classroom.nombre.ilike(f"%{q}%")
         )
-    assignments = query.order_by(Assignment.created_at.desc()).all()
+    if sort_by not in SORTABLE_COLUMNS:
+        sort_by = "created_at"
+    if sort_dir not in ("asc", "desc"):
+        sort_dir = "desc"
+    col = SORTABLE_COLUMNS.get(sort_by, Assignment.created_at)
+    order_func = col.asc if sort_dir == "asc" else col.desc
+    assignments = query.order_by(order_func()).all()
     return templates.TemplateResponse(request, "assignments.html", {
         "request": request,
         "assignments": assignments,
         "q": q,
+        "sort_by": sort_by,
+        "sort_dir": sort_dir,
         "msg": request.query_params.get("msg"),
     })
 
