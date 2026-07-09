@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}{{ assignment.titulo }} - Inventario Escolar{% endblock %}
+
+{% macro badge_estado(estado) %}
+    {% set v = estado.value if estado is not string and estado is not none else estado %}
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+        {% if v == 'Bueno' %}bg-olive-100 text-olive-800
+        {% elif v == 'Regular' %}bg-yellow-100 text-yellow-800
+        {% elif v == 'Malo' %}bg-red-100 text-red-800
+        {% else %}bg-gray-100 text-gray-600{% endif %}">{{ v or '-' }}</span>
+{% endmacro %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-start justify-between mb-6 flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+            <a href="/assignments" class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors shrink-0">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">{{ assignment.titulo }}</h1>
+                <p class="text-sm text-gray-500 mt-1">Acta de Entrega #{{ assignment.id }}</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="/reports/assignment/{{ assignment.id }}" class="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white font-medium rounded-lg text-sm transition-colors">
+                <i data-lucide="file-down" class="w-4 h-4"></i>
+                Descargar PDF
+            </a>
+            {% if assignment.active %}
+            <a href="/assignments/{{ assignment.id }}/validate" class="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white font-medium rounded-lg text-sm transition-colors">
+                <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                Validar Devolucion
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Datos del acta -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+                <p class="text-sm text-gray-500">Salon</p>
+                <p class="text-sm font-medium text-gray-900">{{ assignment.classroom.nombre }} ({{ assignment.classroom.codigo }})</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Profesor</p>
+                <p class="text-sm font-medium text-gray-900">{{ assignment.user.nombre if assignment.user else 'Sin asignar' }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Fecha de entrega</p>
+                <p class="text-sm font-medium text-gray-900">{{ assignment.assignment_date.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Estado</p>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if assignment.active %}bg-olive-100 text-olive-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ 'Activa' if assignment.active else 'Cerrada' }}
+                </span>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Fecha de cierre</p>
+                <p class="text-sm font-medium text-gray-900">{{ assignment.closed_at.strftime('%d/%m/%Y %H:%M') if assignment.closed_at else '-' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+        <div class="px-5 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">Activos entregados</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cant.</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripcion</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serial</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observacion</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for item in assignment.items %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-sm text-gray-900">{{ item.cantidad }}</td>
+                        <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ item.descripcion }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500 font-mono">{{ item.serial or '-' }}</td>
+                        <td class="px-5 py-3">{{ badge_estado(item.estado) }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500">{{ item.observacion or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Agregar activos (solo si activa) -->
+    {% if assignment.active %}
+    <div class="bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-300 p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Agregar activos a esta acta</h3>
+        <form method="POST" action="/assignments/{{ assignment.id }}/items">
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-20">Cantidad</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripcion</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serial</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Estado</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observacion</th>
+                            <th class="px-3 py-3 w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="add-items-body" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="agregarFilaAdd()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Agregar activo
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-accent-600 hover:bg-accent-700 text-white font-medium rounded-lg text-sm transition-colors">
+                    <i data-lucide="save" class="w-4 h-4 inline"></i>
+                    Guardar activos
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Validaciones asociadas -->
+    {% if assignment.validations %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">Devoluciones validadas</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notas</th>
+                        <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for v in assignment.validations %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-sm text-gray-500">{{ v.id }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500">{{ v.validation_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500">{{ v.admin_notes or '-' }}</td>
+                        <td class="px-5 py-3 text-right">
+                            <a href="/validations/{{ v.id }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">Ver</a>
+                            <a href="/reports/validation/{{ v.id }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-accent-600 hover:bg-accent-50 rounded-lg transition-colors">PDF</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<template id="fila-add-template">
+    <tr class="hover:bg-gray-50 align-top">
+        <td class="px-3 py-2">
+            <input type="number" name="cantidad" value="1" min="1"
+                class="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+        </td>
+        <td class="px-3 py-2">
+            <select name="descripcion" onchange="toggleOtroAdd(this)"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+                <option value="">-- Seleccionar --</option>
+                {% for a in activos_comunes %}
+                <option value="{{ a }}">{{ a }}</option>
+                {% endfor %}
+                <option value="__otro__">Otro...</option>
+            </select>
+            <input type="text" name="descripcion_otro" placeholder="Escribir activo..."
+                class="w-full mt-1 px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500 hidden">
+        </td>
+        <td class="px-3 py-2">
+            <input type="text" name="serial"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+        </td>
+        <td class="px-3 py-2">
+            <select name="estado"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+                {% for cond in condiciones %}
+                <option value="{{ cond }}" {% if cond == 'Bueno' %}selected{% endif %}>{{ cond }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td class="px-3 py-2">
+            <input type="text" name="observacion"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+        </td>
+        <td class="px-3 py-2 text-center">
+            <button type="button" onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script>
+    function agregarFilaAdd() {
+        const tpl = document.getElementById('fila-add-template');
+        const clone = tpl.content.cloneNode(true);
+        document.getElementById('add-items-body').appendChild(clone);
+        lucide.createIcons();
+    }
+
+    function toggleOtroAdd(select) {
+        const otro = select.parentElement.querySelector('input[name="descripcion_otro"]');
+        if (select.value === '__otro__') {
+            otro.classList.remove('hidden');
+            otro.required = true;
+        } else {
+            otro.classList.add('hidden');
+            otro.required = false;
+        }
+    }
+</script>
+{% endblock %}
