@@ -99,7 +99,10 @@
                         </td>
                         <td class="px-5 py-3 text-right">
                             <a href="/assignments/{{ a.id }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">Ver</a>
-                            <a href="/reports/assignment/{{ a.id }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-accent-600 hover:bg-accent-50 rounded-lg transition-colors">PDF</a>
+                            <a href="/reports/assignment/{{ a.id }}?preview=1" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                Vista previa
+                            </a>
                         </td>
                     </tr>
                     {% else %}

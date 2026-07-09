@@ -1,0 +1,50 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# --- Virtual env ---
+venv/
+.venv/
+env/
+
+# --- Base de datos local ---
+*.db
+*.sqlite
+
+# --- Editor / Sistema ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Node (innecesario para Python) ---
+node_modules/
+package-lock.json
+package.json
+
+# --- Basura de sesiones IA ---
+session-*.md
+cookies.txt
+CLAUDE.md
+OPENCODE.md
+
+# --- Planes de trabajo ---
+.omo/
+
+# --- Testing local ---
+.playwright-mcp/
+
+# --- Config local IA ---
+.claude/
+
+# --- Variables de entorno (contiene secrets) ---
+.env
+
+# --- Archivos temporales ---
+*.tmp
+*.log
+2026-*.txt

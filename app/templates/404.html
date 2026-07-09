@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Pagina no encontrada</title>
+    <link rel="icon" type="image/png" href="/static/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#edf5ec',100:'#d4e8d2',200:'#a9d1a5',500:'#4a8a42',600:'#2d5a27',700:'#1e3d1a'},accent:{50:'#fdf0eb',100:'#fce4d6',200:'#f7caba',500:'#d97a4a',600:'#c95d3a',700:'#b84a2d'},olive:{50:'#f2f7eb',100:'#e0efd0',200:'#c4dfa3',600:'#689f38',700:'#558b2f',800:'#4a7c2a'}}}}}</script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="text-center">
+        <img src="/static/logo.png" alt="Logo" class="h-16 w-auto mx-auto mb-6">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-6">
+            <i data-lucide="search-x" class="w-10 h-10 text-yellow-600"></i>
+        </div>
+        <h1 class="text-4xl font-bold text-gray-800 mb-2">404</h1>
+        <p class="text-lg text-gray-500 mb-6">Pagina no encontrada</p>
+        <a href="/dashboard" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Volver al Dashboard
+        </a>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

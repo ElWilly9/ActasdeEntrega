@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}Nueva Acta de Entrega - Inventario Escolar{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="/assignments" class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800">Nueva Acta de Entrega</h1>
+    </div>
+
+    <form method="POST" action="/assignments" class="space-y-6">
+        <!-- Datos del acta -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Titulo del acta</label>
+                <input type="text" name="titulo" required
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    placeholder="Ej: Entrega ano escolar 2025-2026">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Salon</label>
+                <select name="classroom_id" id="classroom-select" required
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                    <option value="">-- Seleccionar salon --</option>
+                    {% for c in classrooms %}
+                    <option value="{{ c.id }}">{{ c.nombre }} ({{ c.codigo }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Profesor</label>
+                <select name="user_id" id="user-select"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                    <option value="">-- Seleccionar profesor --</option>
+                    {% for u in teachers %}
+                    <option value="{{ u.id }}">{{ u.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Boton importar acta anterior -->
+        <div id="import-section" class="hidden bg-olive-50 border border-olive-200 rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i data-lucide="file-check" class="w-5 h-5 text-olive-600"></i>
+                <div>
+                    <p class="text-sm font-medium text-olive-800">Se encontro una acta cerrada anterior para este salon</p>
+                    <p class="text-xs text-olive-600" id="import-info"></p>
+                </div>
+            </div>
+            <button type="button" onclick="importarActaAnterior()" class="px-4 py-2 bg-olive-600 hover:bg-olive-700 text-white font-medium rounded-lg text-sm transition-colors">
+                Importar
+            </button>
+        </div>
+
+        <!-- Tabla de activos -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-800">Activos</h2>
+                <button type="button" onclick="agregarFila()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Agregar activo
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-20">Cantidad</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripcion</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serial</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Estado</th>
+                            <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observacion</th>
+                            <th class="px-3 py-3 w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-body" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="submit" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors">
+                Crear Acta
+            </button>
+            <a href="/assignments" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg text-sm transition-colors">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Plantilla de fila (oculta) -->
+<template id="fila-template">
+    <tr class="hover:bg-gray-50 align-top">
+        <td class="px-3 py-2">
+            <input type="number" name="cantidad" value="1" min="1"
+                class="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+        </td>
+        <td class="px-3 py-2">
+            <select name="descripcion" onchange="toggleOtro(this)"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+                <option value="">-- Seleccionar --</option>
+                {% for a in activos_comunes %}
+                <option value="{{ a }}">{{ a }}</option>
+                {% endfor %}
+                <option value="__otro__">Otro...</option>
+            </select>
+            <input type="text" name="descripcion_otro" placeholder="Escribir activo..."
+                class="w-full mt-1 px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500 hidden">
+        </td>
+        <td class="px-3 py-2">
+            <input type="text" name="serial"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+        </td>
+        <td class="px-3 py-2">
+            <select name="estado"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+                {% for cond in condiciones %}
+                <option value="{{ cond }}" {% if cond == 'Bueno' %}selected{% endif %}>{{ cond }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td class="px-3 py-2">
+            <input type="text" name="observacion"
+                class="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:ring-2 focus:ring-primary-500">
+        </td>
+        <td class="px-3 py-2 text-center">
+            <button type="button" onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script>
+    let lastClosedData = null;
+
+    function agregarFila(data = null) {
+        const tpl = document.getElementById('fila-template');
+        const clone = tpl.content.cloneNode(true);
+        const row = clone.querySelector('tr');
+
+        if (data) {
+            // Llenar los campos con los datos importados
+            const select = row.querySelector('select[name="descripcion"]');
+            const otroInput = row.querySelector('input[name="descripcion_otro"]');
+            const serialInput = row.querySelector('input[name="serial"]');
+            const estadoSelect = row.querySelector('select[name="estado"]');
+            const observacionInput = row.querySelector('input[name="observacion"]');
+            const cantidadInput = row.querySelector('input[name="cantidad"]');
+
+            // Verificar si la descripcion esta en las opciones del select
+            let found = false;
+            for (let opt of select.options) {
+                if (opt.value === data.descripcion) {
+                    opt.selected = true;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                // Si no esta en las opciones, usar "Otro"
+                select.value = '__otro__';
+                otroInput.classList.remove('hidden');
+                otroInput.value = data.descripcion;
+                otroInput.required = true;
+            }
+
+            cantidadInput.value = data.cantidad;
+            serialInput.value = data.serial;
+            estadoSelect.value = data.estado;
+            observacionInput.value = data.observacion;
+        }
+
+        document.getElementById('items-body').appendChild(clone);
+        lucide.createIcons();
+    }
+
+    function toggleOtro(select) {
+        const otro = select.parentElement.querySelector('input[name="descripcion_otro"]');
+        if (select.value === '__otro__') {
+            otro.classList.remove('hidden');
+            otro.required = true;
+        } else {
+            otro.classList.add('hidden');
+            otro.required = false;
+        }
+    }
+
+    async function buscarActaAnterior() {
+        const classroomId = document.getElementById('classroom-select').value;
+        const importSection = document.getElementById('import-section');
+
+        if (!classroomId) {
+            importSection.classList.add('hidden');
+            lastClosedData = null;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/assignments/last-closed?classroom_id=${classroomId}`);
+            const data = await response.json();
+
+            if (data.assignment && data.items.length > 0) {
+                lastClosedData = data;
+                document.getElementById('import-info').textContent = 
+                    `"${data.assignment.titulo}" - ${data.items.length} activos`;
+                importSection.classList.remove('hidden');
+            } else {
+                lastClosedData = null;
+                importSection.classList.add('hidden');
+            }
+        } catch (error) {
+            console.error('Error al buscar acta anterior:', error);
+            importSection.classList.add('hidden');
+        }
+    }
+
+    function importarActaAnterior() {
+        if (!lastClosedData || !lastClosedData.items) return;
+
+        // Limpiar filas existentes
+        document.getElementById('items-body').innerHTML = '';
+
+        // Agregar cada item importado
+        lastClosedData.items.forEach(item => {
+            agregarFila(item);
+        });
+
+        // Ocultar seccion de importacion
+        document.getElementById('import-section').classList.add('hidden');
+    }
+
+    // Buscar acta anterior cuando cambia el salon
+    document.getElementById('classroom-select').addEventListener('change', buscarActaAnterior);
+
+    // Empezar con una fila
+    agregarFila();
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "oh-my-opencode",
+    [
+      "opencode-tool-search",
+      {
+        "alwaysLoad": [
+          "read",
+          "write",
+          "edit",
+          "bash",
+          "glob",
+          "grep"
+        ]
+      }
+    ]
+  ]
+}

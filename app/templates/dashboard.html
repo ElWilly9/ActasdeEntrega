@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Inventario Escolar{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
+
+    <!-- Cards de resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-primary-50 rounded-lg">
+                    <i data-lucide="users" class="w-6 h-6 text-primary-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Profesores</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_teachers }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-olive-50 rounded-lg">
+                    <i data-lucide="building-2" class="w-6 h-6 text-olive-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Salones</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_classrooms }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-accent-50 rounded-lg">
+                    <i data-lucide="file-text" class="w-6 h-6 text-accent-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Actas Activas</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ total_assignments }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Busqueda de profesores -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Buscar Profesores</h2>
+        <form method="GET" action="/dashboard" class="flex gap-2">
+            <input type="text" name="q" value="{{ q }}"
+                class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                placeholder="Buscar por nombre o salon...">
+            <button type="submit" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors">
+                <i data-lucide="search" class="w-4 h-4 inline"></i>
+                Buscar
+            </button>
+            {% if q %}
+            <a href="/dashboard" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg text-sm transition-colors">
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Tabla de profesores -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">Profesores</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salon</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for teacher in teachers %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ teacher.nombre }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500">{{ teacher.email }}</td>
+                        <td class="px-5 py-3 text-sm text-gray-500">{{ teacher.classroom.nombre if teacher.classroom else '-' }}</td>
+                        <td class="px-5 py-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if teacher.activo %}bg-olive-100 text-olive-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ 'Activo' if teacher.activo else 'Inactivo' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="px-5 py-8 text-center text-sm text-gray-500">
+                            {% if q %}No se encontraron profesores con ese criterio de busqueda.{% else %}No hay profesores registrados.{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

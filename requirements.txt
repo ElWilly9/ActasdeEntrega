@@ -1,0 +1,31 @@
+# === Framework Web ===
+fastapi
+uvicorn[standard]
+python-multipart
+
+# === Base de Datos (PostgreSQL con driver pure-Python) ===
+sqlalchemy
+pg8000
+alembic
+
+# === Autenticación & Seguridad ===
+python-jose[cryptography]
+passlib[bcrypt]
+
+# === PDF Reports (Actas Digitales) ===
+fpdf2
+
+# === Templates & UI ===
+jinja2
+
+# === Validación & Config ===
+pydantic
+pydantic-settings
+python-dotenv
+
+# === Cliente HTTP async ===
+httpx
+
+# === Testing ===
+pytest
+pytest-asyncio
