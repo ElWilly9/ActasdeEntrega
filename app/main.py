@@ -32,9 +32,9 @@ def _auto_seed():
 
         print("[seed] Base de datos vacia — sembrando datos de prueba...")
 
-        aula101 = Classroom(nombre="Aula 101", codigo="A101")
-        aula102 = Classroom(nombre="Aula 102", codigo="A102")
-        db.add_all([aula101, aula102])
+        stem1 = Classroom(nombre="Stem 1", codigo="S1")
+        stem2a = Classroom(nombre="Stem 2A", codigo="S2A")
+        db.add_all([stem1, stem2a])
         db.flush()
 
         admin = User(
@@ -48,19 +48,26 @@ def _auto_seed():
             nombre="Maria Lopez",
             password_hash=hash_password("cambio123"),
             rol=UserRole.profesor,
-            classroom_id=aula101.id,
+            classroom_id=stem1.id,
         )
         juan = User(
             email="juan@escuela.cl",
             nombre="Juan Perez",
             password_hash=hash_password("cambio123"),
             rol=UserRole.profesor,
-            classroom_id=aula102.id,
+            classroom_id=stem2a.id,
         )
-        db.add_all([admin, maria, juan])
+        fernanda = User(
+            email="baute@bilingue.edu.co",
+            nombre="Maria Fernanda Bautem",
+            password_hash=hash_password("cambio123"),
+            rol=UserRole.profesor,
+            classroom_id=stem1.id,
+        )
+        db.add_all([admin, maria, juan, fernanda])
         db.flush()
 
-        acta = Assignment(classroom_id=aula101.id, titulo="Entrega ano escolar 2025-2026")
+        acta = Assignment(classroom_id=stem1.id, titulo="Entrega ano escolar 2025-2026")
         db.add(acta)
         db.flush()
 

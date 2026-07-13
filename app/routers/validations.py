@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Assignment, Validation, ValidationItem
+from app.models import Assignment, Validation, ValidationExtraItem, ValidationItem
 from app.models.assignment import Condicion
 from app.routers.auth import require_admin
 from app.templating import templates
@@ -66,6 +66,45 @@ async def create_validation(
             devuelto=devuelto,
             estado=estado,
             observacion=notes,
+        ))
+
+    # Activos devueltos que no estaban en el acta original
+    extra_descripciones = form.getlist("extra_descripcion")
+    extra_cantidades = form.getlist("extra_cantidad")
+    extra_seriales = form.getlist("extra_serial")
+    extra_devueltos = form.getlist("extra_devuelto")
+    extra_estados = form.getlist("extra_estado")
+    extra_observaciones = form.getlist("extra_observacion")
+
+    for i in range(len(extra_descripciones)):
+        desc = (extra_descripciones[i] or "").strip()
+        if not desc:
+            continue
+
+        try:
+            cantidad = int(extra_cantidades[i]) if i < len(extra_cantidades) and extra_cantidades[i] else 1
+        except ValueError:
+            cantidad = 1
+        cantidad = max(1, cantidad)
+
+        devuelto = extra_devueltos[i] in ("on", "true", "Si") if i < len(extra_devueltos) else True
+
+        estado = None
+        estado_val = extra_estados[i] if i < len(extra_estados) else None
+        if estado_val:
+            try:
+                estado = Condicion(estado_val)
+            except ValueError:
+                estado = None
+
+        db.add(ValidationExtraItem(
+            validation_id=validation.id,
+            cantidad=cantidad,
+            descripcion=desc,
+            serial=(extra_seriales[i].strip() or None) if i < len(extra_seriales) else None,
+            devuelto=devuelto,
+            estado=estado,
+            observacion=(extra_observaciones[i].strip() or None) if i < len(extra_observaciones) else None,
         ))
 
     # Cerrar el acta al validar la devolucion

@@ -80,6 +80,26 @@ def generate_assignment_pdf(assignment_id: int, db: Session) -> bytes:
     return bytes(pdf.output())
 
 
+def _fila_comparativa(item):
+    """Convierte un ValidationItem o ValidationExtraItem en fila de tabla comparativa."""
+    if hasattr(item, "assignment_item") and item.assignment_item:
+        ai = item.assignment_item
+        cantidad = str(ai.cantidad)
+        descripcion = _s(ai.descripcion)
+        serial = _s(ai.serial or "-")
+        inicial = _estado_str(ai.estado)
+    else:
+        # ValidationExtraItem: activo solo presente en devolucion
+        cantidad = str(item.cantidad)
+        descripcion = _s(item.descripcion)
+        serial = _s(item.serial or "-")
+        inicial = "No registrado"
+    devuelto = "Si" if item.devuelto else "No"
+    final = _estado_str(item.estado)
+    observacion = _s(item.observacion or "-")
+    return [cantidad, descripcion, serial, inicial, devuelto, final, observacion]
+
+
 def generate_validation_pdf(validation_id: int, db: Session) -> bytes:
     validation = db.query(Validation).filter(Validation.id == validation_id).first()
     if not validation:
@@ -99,23 +119,17 @@ def generate_validation_pdf(validation_id: int, db: Session) -> bytes:
     pdf.ln(3)
 
     pdf.set_font("Helvetica", "", 11)
-    pdf.cell(0, 7, _s("A continuacion se relacionan los objetos que han sido devueltos por el profesor."), ln=True)
+    pdf.cell(0, 7, _s("Se comparan los activos entregados a principio de ano con su estado actual de devolucion."), ln=True)
     pdf.ln(3)
 
-    # Columnas: Cantidad | Descripcion | Serial | Devuelto | Estado | Observacion
-    pdf.set_font("Helvetica", "", 9)
-    with pdf.table(col_widths=(10, 28, 20, 14, 14, 28), text_align="LEFT") as table:
-        table.row(["Cant.", "Descripcion", "Serial", "Devuelto", "Estado", "Observacion"])
-        for item in validation.items:
-            ai = item.assignment_item
-            table.row([
-                str(ai.cantidad) if ai else "-",
-                _s(ai.descripcion) if ai else "-",
-                _s(ai.serial) if ai and ai.serial else "-",
-                "Si" if item.devuelto else "No",
-                _estado_str(item.estado),
-                _s(item.observacion or "-"),
-            ])
+    # Tabla comparativa: estado inicial (entrega) vs estado final (devolucion)
+    # Columnas: Cant. | Descripcion | Serial | Inicial | Devuelto | Final | Observacion
+    pdf.set_font("Helvetica", "", 8)
+    combined = list(validation.items) + list(validation.extra_items)
+    with pdf.table(col_widths=(10, 38, 24, 24, 16, 24, 38), text_align="LEFT") as table:
+        table.row(["Cant.", "Descripcion", "Serial", "Inicial", "Devuelto", "Final", "Observacion"])
+        for item in combined:
+            table.row(_fila_comparativa(item))
 
     _firmas(pdf)
     return bytes(pdf.output())

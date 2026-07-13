@@ -64,6 +64,7 @@ class Validation(Base):
 
     assignment = relationship("Assignment", back_populates="validations")
     items = relationship("ValidationItem", back_populates="validation", cascade="all, delete-orphan")
+    extra_items = relationship("ValidationExtraItem", back_populates="validation", cascade="all, delete-orphan")
 
 
 class ValidationItem(Base):
@@ -80,3 +81,20 @@ class ValidationItem(Base):
 
     validation = relationship("Validation", back_populates="items")
     assignment_item = relationship("AssignmentItem")
+
+
+class ValidationExtraItem(Base):
+    """Activos devueltos que no fueron registrados en el acta de entrega original."""
+
+    __tablename__ = "validation_extra_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    validation_id = Column(Integer, ForeignKey("validations.id"), nullable=False)
+    cantidad = Column(Integer, nullable=False, default=1)
+    descripcion = Column(String(255), nullable=False)
+    serial = Column(String(100), nullable=True)
+    devuelto = Column(Boolean, default=True)
+    estado = Column(Enum(Condicion), nullable=True)
+    observacion = Column(Text, nullable=True)
+
+    validation = relationship("Validation", back_populates="extra_items")

@@ -4,4 +4,10 @@ Base = declarative_base()
 
 from app.models.user import User  # noqa
 from app.models.classroom import Classroom  # noqa
-from app.models.assignment import Assignment, AssignmentItem, Validation, ValidationItem  # noqa
+from app.models.assignment import (  # noqa
+    Assignment,
+    AssignmentItem,
+    Validation,
+    ValidationExtraItem,
+    ValidationItem,
+)

@@ -18,9 +18,9 @@ def seed():
 
     try:
         # Salones
-        aula101 = Classroom(nombre="Aula 101", codigo="A101")
-        aula102 = Classroom(nombre="Aula 102", codigo="A102")
-        db.add_all([aula101, aula102])
+        stem1 = Classroom(nombre="Stem 1", codigo="S1")
+        stem2a = Classroom(nombre="Stem 2A", codigo="S2A")
+        db.add_all([stem1, stem2a])
         db.flush()
 
         # Usuarios
@@ -35,20 +35,27 @@ def seed():
             nombre="Maria Lopez",
             password_hash=hash_password("cambio123"),
             rol=UserRole.profesor,
-            classroom_id=aula101.id,
+            classroom_id=stem1.id,
         )
         juan = User(
             email="juan@escuela.cl",
             nombre="Juan Perez",
             password_hash=hash_password("cambio123"),
             rol=UserRole.profesor,
-            classroom_id=aula102.id,
+            classroom_id=stem2a.id,
         )
-        db.add_all([admin, maria, juan])
+        fernanda = User(
+            email="baute@bilingue.edu.co",
+            nombre="Maria Fernanda Bautem",
+            password_hash=hash_password("cambio123"),
+            rol=UserRole.profesor,
+            classroom_id=stem1.id,
+        )
+        db.add_all([admin, maria, juan, fernanda])
         db.flush()
 
-        # Acta de ejemplo para el Aula 101
-        acta = Assignment(classroom_id=aula101.id, titulo="Entrega ano escolar 2025-2026")
+        # Acta de ejemplo para Stem 1
+        acta = Assignment(classroom_id=stem1.id, titulo="Entrega ano escolar 2025-2026")
         db.add(acta)
         db.flush()
 
@@ -65,8 +72,8 @@ def seed():
         db.commit()
 
         print("Datos semilla creados exitosamente:")
-        print("  - 2 salones (Aula 101, Aula 102)")
-        print("  - 3 usuarios (admin, Maria, Juan)")
+        print("  - 2 salones (Stem 1, Stem 2A)")
+        print("  - 4 usuarios (admin, Maria, Juan, Fernanda)")
         print("  - 1 acta de ejemplo con 4 activos")
         print("  - Contrasena admin: admin123")
         print("  - Contrasena profesores: cambio123")

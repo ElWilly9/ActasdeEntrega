@@ -14,6 +14,7 @@ Pensada para uso **administrativo** al inicio y fin del año académico.
 | **Admin** | `admin@escuela.cl` | `admin123` |
 | Profesor | `maria@escuela.cl` | `cambio123` |
 | Profesor | `juan@escuela.cl` | `cambio123` |
+| Profesor | `baute@bilingue.edu.co` | `cambio123` |
 
 > El **admin** gestiona todo (salones, profesores, activos, asignaciones, validaciones).
 > El **profesor** solo ve y descarga sus propios comprobantes.

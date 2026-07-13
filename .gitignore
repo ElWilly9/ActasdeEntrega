@@ -48,3 +48,6 @@ OPENCODE.md
 *.tmp
 *.log
 2026-*.txt
+
+
+.claude/
